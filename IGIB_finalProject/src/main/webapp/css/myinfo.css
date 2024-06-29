@@ -1,0 +1,84 @@
+@charset "UTF-8";
+
+/* CSS 스타일은 여기에 추가 */
+#loginForm, .form-select, .form-control, #submitButton {
+	width: 80%;
+	margin: auto
+}
+
+#userIdarea, #userPwarea, #userNamearea, #userEmailarea,
+	#userNicknamearea {
+	width: 100%;
+}
+
+#userPwarea {
+	text-align: center;
+}
+
+#userPw, #userEmail {
+	width: 85%;
+	display: inline-block;
+	border: none;
+	padding: 0;
+}
+
+#inputEmailCode {
+	width: 85%;
+	display: inline-block;
+	border: none;
+	padding: 0;
+}
+
+#mpwBtn {
+	display: inline-block;
+	width: 13%;
+	height: 35px;
+}
+
+.btnBox {
+	width: 80%;
+	margin: auto;
+	background-color: white;
+	border-radius: 6px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 1px;
+}
+
+#pw {
+	text-align: -webkit-left;
+	width: 80%;
+	margin: auto;
+}
+
+#name, #id, #pw, #email, #nickname {
+	width: 80%;
+	margin: auto;
+}
+
+#findId, #findPw {
+	font-size: 12px;
+	color: whitesmoke;
+}
+
+#kakaobtn {
+	display: flex;
+	justify-content: center;
+}
+
+#loginBtn {
+	text-align: center
+}
+
+#submitButton {
+	width: 10%
+}
+
+#kakao_userPw {
+	width: 85%;
+	display: inline-block;
+	border: none;
+	margin: auto;
+	margin-left: 0;
+}

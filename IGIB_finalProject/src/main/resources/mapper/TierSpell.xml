@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.icia.igib.dao.TierSpellDao">
+    <select id="selectSpellUsage" resultType="map">
+		SELECT 
+		t.mctier,
+		t.spell, 
+		COUNT(*) AS spell_count,
+		tier_games.total_games
+		FROM (
+		    SELECT mctier, mcspell1 AS spell
+		    FROM testMATCHES
+		    UNION ALL
+		    SELECT mctier, mcspell2 AS spell
+		    FROM testMATCHES
+		) t
+		JOIN (
+		    SELECT mctier, COUNT(*) AS total_games
+		    FROM testMATCHES
+		    GROUP BY mctier
+		) tier_games
+		ON t.mctier = tier_games.mctier
+		WHERE t.spell = #{spnumber}
+		GROUP BY t.mctier, t.spell, tier_games.total_games
+		ORDER BY 
+		    CASE 
+		        WHEN t.mctier = 'IRON' THEN 1
+		        WHEN t.mctier = 'BRONZE' THEN 2
+		        WHEN t.mctier = 'SILVER' THEN 3
+		        WHEN t.mctier = 'GOLD' THEN 4
+		        WHEN t.mctier = 'PLATINUM' THEN 5
+		        WHEN t.mctier = 'EMERALD' THEN 6
+		        WHEN t.mctier = 'DIAMOND' THEN 7
+		        WHEN t.mctier = 'MASTER' THEN 8
+		        WHEN t.mctier = 'GRANDMASTER' THEN 9
+		        WHEN t.mctier = 'CHALLENGER' THEN 10
+		    END,
+		    t.spell
+    </select>
+</mapper>

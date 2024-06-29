@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.icia.igib.dao.LolInfoDao">
+
+	<select id="selectChampListAll" resultType="map">
+	SELECT cid, cname
+	FROM testchampions
+	ORDER BY cname
+	</select>
+
+
+	<select id="selectChampListByPosition" resultType="map">
+		WITH
+		TotalMatches AS (
+		SELECT
+		mcchampionname,
+		COUNT(*) AS total_count
+		FROM
+		testmatches
+		GROUP BY
+		mcchampionname
+		),
+		PositionMatches AS (
+		SELECT
+		mcchampionname,
+		mcteamposition,
+		COUNT(*) AS position_count
+		FROM
+		testmatches
+		WHERE
+		mcteamposition = #{position}
+		GROUP BY
+		mcchampionname,
+		mcteamposition
+		)
+		SELECT
+		c.cname,
+		t.mcchampionname as cid,
+		p.mcteamposition,
+		ROUND((p.position_count * 100.0 / t.total_count), 1)
+		AS percentage
+
+		FROM
+		TotalMatches t
+		JOIN
+		PositionMatches p ON
+		t.mcchampionname = p.mcchampionname
+		JOIN
+		testchampions c ON
+		t.mcchampionname = c.cid
+		WHERE
+		ROUND((p.position_count * 100.0 /
+		t.total_count), 1) >= 30
+		GROUP BY
+		t.mcchampionname, p.mcteamposition,
+		p.position_count, t.total_count, c.cname
+		ORDER BY
+		c.cname
+	</select>
+
+	<select id="selectChampRankingAll" resultType="map">
+    <![CDATA[
+       WITH win_rate_cte AS (
+		    SELECT 
+		        w.mcchampionname,
+		        w.mcteamposition,
+		        ROUND((w.win_count / tw.total_mcwin_count) * 100, 1) AS win_rate
+		    FROM 
+		        (SELECT mcchampionname, mcteamposition, COUNT(*) AS total_mcwin_count
+		        FROM testmatches
+		        WHERE mctier = #{tier} 
+		        GROUP BY mcchampionname, mcteamposition) tw
+		    JOIN 
+		        (SELECT mcchampionname, mcteamposition, COUNT(*) AS win_count
+		        FROM testmatches
+		        WHERE mctier = #{tier} AND mcwin = 1
+		        GROUP BY mcchampionname, mcteamposition) w
+		    ON 
+		        w.mcchampionname = tw.mcchampionname AND w.mcteamposition = tw.mcteamposition
+		    WHERE 
+		        tw.total_mcwin_count > 5
+		), pick_rate_cte AS (
+		    SELECT 
+		        p.mcchampionname,
+		        p.mcteamposition,
+		        ROUND((p.pick_count / t.total_pick_count) * 100, 2) AS pick_rate_percentage
+		    FROM 
+		        (SELECT mcchampionname, mcteamposition, COUNT(*) AS pick_count
+		        FROM testmatches
+		        WHERE mctier = #{tier}
+		        GROUP BY mcchampionname, mcteamposition) p
+		    CROSS JOIN 
+		        (SELECT COUNT(*) AS total_pick_count
+		        FROM testmatches
+		        WHERE mctier = #{tier}) t
+		), combined_scores AS (
+		    SELECT
+		        w.mcchampionname,
+		        w.mcteamposition,
+		        w.win_rate,
+		        p.pick_rate_percentage,
+		        (w.win_rate * 0.4 + p.pick_rate_percentage * 0.6) AS weighted_score
+		    FROM
+		        win_rate_cte w
+		    JOIN
+		        pick_rate_cte p ON w.mcchampionname = p.mcchampionname AND w.mcteamposition = p.mcteamposition
+		), tier_assignments AS (
+		    SELECT 
+		        mcchampionname,
+		        mcteamposition,
+		        win_rate,
+		        pick_rate_percentage as pick_rate,
+		        weighted_score,
+		        NTILE(10) OVER (ORDER BY weighted_score DESC) AS score_tier
+		    FROM 
+		        combined_scores
+		), champion_tiers AS (
+		    SELECT 
+		        mcchampionname,
+		        mcteamposition,
+		        win_rate,
+		        pick_rate,
+		        weighted_score,
+		        CASE 
+		            WHEN score_tier <= 1 THEN 1
+		            WHEN score_tier <= 4 THEN 2
+		            ELSE 3
+		        END AS tier
+		    FROM 
+		        tier_assignments
+		    ORDER BY 
+		        tier ASC, weighted_score DESC, win_rate desc, pick_rate desc
+		), losing_matches AS (
+		    SELECT 
+		        mcid, 
+		        mcchampionname AS losing_champion,
+		        mcteamid
+		    FROM 
+		        testmatches
+		    WHERE 
+		        mctier = #{tier}  AND
+		        mcwin = 0
+		), opponent_champions AS (
+		    SELECT 
+		        l.mcid,
+		        l.losing_champion,
+		        t.mcchampionname AS opponent_champion
+		    FROM 
+		        losing_matches l
+		    JOIN 
+		        testmatches t
+		    ON 
+		        l.mcid = t.mcid AND
+		        l.mcteamid != t.mcteamid
+		), ranked_opponents AS (
+		    SELECT 
+		        ro.losing_champion,
+		        ro.opponent_champion,
+		        COUNT(*) AS loss_count,
+		        ROW_NUMBER() OVER (PARTITION BY ro.losing_champion ORDER BY COUNT(*) DESC) AS rn,
+		        tc.cname AS opponent_champion_name
+		    FROM 
+		        opponent_champions ro
+		    JOIN 
+		        testchampions tc ON ro.opponent_champion = tc.cid
+		    GROUP BY 
+		        ro.losing_champion,
+		        ro.opponent_champion,
+		        tc.cname
+		)
+		SELECT 
+		    ct.mcchampionname as cid,
+		    tc.cname AS cname,
+		    ct.mcteamposition as position,
+		    ct.win_rate,
+		    ct.pick_rate,
+		    ct.tier,
+		    MAX(CASE WHEN ro.rn = 1 THEN ro.opponent_champion END) AS counter_champion1,
+		    MAX(CASE WHEN ro.rn = 1 THEN ro.opponent_champion_name END) AS counter_champion1_name,
+		    MAX(CASE WHEN ro.rn = 1 THEN ro.loss_count END) AS loss_count1,
+		    MAX(CASE WHEN ro.rn = 2 THEN ro.opponent_champion END) AS counter_champion2,
+		    MAX(CASE WHEN ro.rn = 2 THEN ro.opponent_champion_name END) AS counter_champion2_name,
+		    MAX(CASE WHEN ro.rn = 2 THEN ro.loss_count END) AS loss_count2,
+		    MAX(CASE WHEN ro.rn = 3 THEN ro.opponent_champion END) AS counter_champion3,
+		    MAX(CASE WHEN ro.rn = 3 THEN ro.opponent_champion_name END) AS counter_champion3_name,
+		    MAX(CASE WHEN ro.rn = 3 THEN ro.loss_count END) AS loss_count3
+		FROM 
+		    champion_tiers ct
+		LEFT JOIN 
+		    ranked_opponents ro ON ct.mcchampionname = ro.losing_champion
+		JOIN 
+		    testchampions tc ON ct.mcchampionname = tc.cid
+		GROUP BY 
+		    ct.mcchampionname,
+		    tc.cname,
+		    ct.mcteamposition,
+		    ct.win_rate,
+		    ct.pick_rate,
+		    ct.tier
+		ORDER BY 
+		    ct.tier ASC, ct.win_rate DESC, ct.pick_rate DESC
+    ]]>
+	</select>
+
+	<select id="selectChampRankingByPosition" resultType="map">
+		<![CDATA[
+			WITH win_rate_cte AS (
+		    SELECT 
+		        w.mcchampionname,
+		        w.mcteamposition,
+		        ROUND((w.win_count / tw.total_mcwin_count) * 100, 1) AS win_rate
+		    FROM 
+		        (SELECT mcchampionname, mcteamposition, COUNT(*) AS total_mcwin_count
+		        FROM testmatches
+		        WHERE mctier = #{tier} AND mcteamposition = #{position}
+		        GROUP BY mcchampionname, mcteamposition) tw
+		    JOIN 
+		        (SELECT mcchampionname, mcteamposition, COUNT(*) AS win_count
+		        FROM testmatches
+		        WHERE mctier = #{tier} AND mcteamposition = #{position} AND mcwin = 1
+		        GROUP BY mcchampionname, mcteamposition) w
+		    ON 
+		        w.mcchampionname = tw.mcchampionname AND w.mcteamposition = tw.mcteamposition
+		    WHERE 
+		        tw.total_mcwin_count > 5
+		), pick_rate_cte AS (
+		    SELECT 
+		        p.mcchampionname,
+		        p.mcteamposition,
+		        ROUND((p.pick_count / t.total_pick_count) * 100, 2) AS pick_rate_percentage
+		    FROM 
+		        (SELECT mcchampionname, mcteamposition, COUNT(*) AS pick_count
+		        FROM testmatches
+		        WHERE mctier = #{tier} AND mcteamposition = #{position}
+		        GROUP BY mcchampionname, mcteamposition) p
+		    CROSS JOIN 
+		        (SELECT COUNT(*) AS total_pick_count
+		        FROM testmatches
+		        WHERE mctier = #{tier} AND mcteamposition = #{position}) t
+		), combined_scores AS (
+		    SELECT
+		        w.mcchampionname,
+		        w.mcteamposition,
+		        w.win_rate,
+		        p.pick_rate_percentage,
+		        (w.win_rate * 0.4 + p.pick_rate_percentage * 0.6) AS weighted_score
+		    FROM
+		        win_rate_cte w
+		    JOIN
+		        pick_rate_cte p ON w.mcchampionname = p.mcchampionname AND w.mcteamposition = p.mcteamposition
+		), tier_assignments AS (
+		    SELECT 
+		        mcchampionname,
+		        mcteamposition,
+		        win_rate,
+		        pick_rate_percentage as pick_rate,
+		        weighted_score,
+		        NTILE(10) OVER (ORDER BY weighted_score DESC) AS score_tier
+		    FROM 
+		        combined_scores
+		), champion_tiers AS (
+		    SELECT 
+		        mcchampionname,
+		        mcteamposition,
+		        win_rate,
+		        pick_rate,
+		        weighted_score,
+		        CASE 
+		            WHEN score_tier <= 1 THEN 1
+		            WHEN score_tier <= 4 THEN 2
+		            ELSE 3
+		        END AS tier
+		    FROM 
+		        tier_assignments
+		    ORDER BY 
+		        tier ASC, weighted_score DESC, win_rate desc, pick_rate desc
+		), losing_matches AS (
+		    SELECT 
+		        mcid, 
+		        mcchampionname AS losing_champion,
+		        mcteamid
+		    FROM 
+		        testmatches
+		    WHERE 
+		        mctier = #{tier} AND
+		        mcteamposition = #{position} AND
+		        mcwin = 0
+		), opponent_champions AS (
+		    SELECT 
+		        l.mcid,
+		        l.losing_champion,
+		        t.mcchampionname AS opponent_champion
+		    FROM 
+		        losing_matches l
+		    JOIN 
+		        testmatches t
+		    ON 
+		        l.mcid = t.mcid AND
+		        l.mcteamid != t.mcteamid
+		), ranked_opponents AS (
+		    SELECT 
+		        ro.losing_champion,
+		        ro.opponent_champion,
+		        COUNT(*) AS loss_count,
+		        ROW_NUMBER() OVER (PARTITION BY ro.losing_champion ORDER BY COUNT(*) DESC) AS rn,
+		        tc.cname AS opponent_champion_name
+		    FROM 
+		        opponent_champions ro
+		    JOIN 
+		        testchampions tc ON ro.opponent_champion = tc.cid
+		    GROUP BY 
+		        ro.losing_champion,
+		        ro.opponent_champion,
+		        tc.cname
+		)
+		SELECT 
+		    ct.mcchampionname as cid,
+		    tc.cname AS cname,
+		    ct.mcteamposition as position, 
+		    ct.win_rate,
+		    ct.pick_rate,
+		    ct.tier,
+		    MAX(CASE WHEN ro.rn = 1 THEN ro.opponent_champion END) AS counter_champion1,
+		    MAX(CASE WHEN ro.rn = 1 THEN ro.opponent_champion_name END) AS counter_champion1_name,
+		    MAX(CASE WHEN ro.rn = 1 THEN ro.loss_count END) AS loss_count1,
+		    MAX(CASE WHEN ro.rn = 2 THEN ro.opponent_champion END) AS counter_champion2,
+		    MAX(CASE WHEN ro.rn = 2 THEN ro.opponent_champion_name END) AS counter_champion2_name,
+		    MAX(CASE WHEN ro.rn = 2 THEN ro.loss_count END) AS loss_count2,
+		    MAX(CASE WHEN ro.rn = 3 THEN ro.opponent_champion END) AS counter_champion3,
+		    MAX(CASE WHEN ro.rn = 3 THEN ro.opponent_champion_name END) AS counter_champion3_name,
+		    MAX(CASE WHEN ro.rn = 3 THEN ro.loss_count END) AS loss_count3
+		FROM 
+		    champion_tiers ct
+		LEFT JOIN 
+		    ranked_opponents ro ON ct.mcchampionname = ro.losing_champion
+		JOIN 
+		    testchampions tc ON ct.mcchampionname = tc.cid
+		GROUP BY 
+		    ct.mcchampionname,
+		    tc.cname,
+		    ct.mcteamposition,
+		    ct.win_rate,
+		    ct.pick_rate,
+		    ct.tier
+		ORDER BY 
+		    ct.tier ASC, ct.win_rate DESC, ct.pick_rate DESC
+		]]>
+	</select>
+
+	<select id="selectChampInfo">
+		<![CDATA[
+WITH most_played_position AS (
+    SELECT 
+        mcchampionname,
+        mcteamposition,
+        COUNT(*) AS position_count
+    FROM 
+        testmatches
+    WHERE
+        mcchampionname = #{cid}
+    GROUP BY 
+        mcchampionname, mcteamposition
+), ranked_positions AS (
+    SELECT
+        mcchampionname,
+        mcteamposition,
+        position_count,
+        ROW_NUMBER() OVER (PARTITION BY mcchampionname ORDER BY position_count DESC) AS rn
+    FROM
+        most_played_position
+), selected_position AS (
+    SELECT
+        mcchampionname,
+        mcteamposition
+    FROM
+        ranked_positions
+    WHERE rn = 1
+), win_rate_cte AS (
+    SELECT 
+        mcchampionname,
+        mcteamposition,
+        ROUND((SUM(CASE WHEN mcwin = 1 THEN 1 ELSE 0 END) / COUNT(*)) * 100, 1) AS win_rate
+    FROM 
+        testmatches
+    WHERE 
+        mcteamposition = (SELECT mcteamposition FROM selected_position WHERE mcchampionname = #{cid})
+        AND mctier IN ('EMERALD', 'DIAMOND', 'MASTER', 'GRANDMASTER', 'CHALLENGER')
+    GROUP BY 
+        mcchampionname, mcteamposition
+), pick_rate_cte AS (
+    SELECT 
+        mcchampionname,
+        mcteamposition,
+        ROUND((COUNT(*) / (SELECT COUNT(*) FROM testmatches WHERE mctier IN ('EMERALD', 'DIAMOND', 'MASTER', 'GRANDMASTER', 'CHALLENGER') AND mcteamposition = (SELECT mcteamposition FROM selected_position WHERE mcchampionname = #{cid}))) * 100, 1) AS pick_rate
+    FROM 
+        testmatches
+    WHERE 
+        mcteamposition = (SELECT mcteamposition FROM selected_position WHERE mcchampionname = #{cid})
+        AND mctier IN ('EMERALD', 'DIAMOND', 'MASTER', 'GRANDMASTER', 'CHALLENGER')
+    GROUP BY 
+        mcchampionname, mcteamposition
+), combined_scores AS (
+    SELECT
+        w.mcchampionname,
+        w.mcteamposition,
+        w.win_rate,
+        p.pick_rate,
+        (w.win_rate * 0.4 + p.pick_rate * 0.6) AS weighted_score
+    FROM
+        win_rate_cte w
+    JOIN
+        pick_rate_cte p ON w.mcchampionname = p.mcchampionname AND w.mcteamposition = p.mcteamposition
+), tier_assignments AS (
+    SELECT 
+        mcchampionname,
+        mcteamposition,
+        win_rate,
+        pick_rate,
+        weighted_score,
+        NTILE(10) OVER (ORDER BY weighted_score DESC) AS score_tier
+    FROM 
+        combined_scores
+), champion_tiers AS (
+    SELECT 
+        mcchampionname,
+        mcteamposition,
+        win_rate,
+        pick_rate,
+        weighted_score,
+        CASE 
+            WHEN score_tier <= 1 THEN 1
+            WHEN score_tier <= 4 THEN 2
+            ELSE 3
+        END AS tier
+    FROM 
+        tier_assignments
+    ORDER BY 
+        tier ASC, weighted_score DESC, win_rate DESC, pick_rate DESC
+), most_used_runes AS (
+    SELECT 
+        rmtitle, rm1, rm2, rm3, rm4, rntitle, rn1, rn2, count
+    FROM (
+        SELECT 
+            r.rmtitle, r.rm1, r.rm2, r.rm3, r.rm4, r.rntitle, r.rn1, r.rn2, COUNT(*) AS count,
+            ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) AS rn
+        FROM 
+            testrunes r
+        JOIN 
+            testmatches m ON r.rmcid = m.mcid
+        WHERE 
+            m.mctier IN ('EMERALD', 'DIAMOND', 'MASTER', 'GRANDMASTER', 'CHALLENGER')
+            AND m.mcchampionname = #{cid}
+            AND m.mcteamposition = (SELECT mcteamposition FROM selected_position WHERE mcchampionname = #{cid})
+        GROUP BY 
+            r.rmtitle, r.rm1, r.rm2, r.rm3, r.rm4, r.rntitle, r.rn1, r.rn2
+    )
+    WHERE rn = 1
+)
+SELECT 
+    ct.mcchampionname,
+    ct.mcteamposition,
+    ct.win_rate,
+    ct.pick_rate,
+    ct.tier,
+    tc.cname,
+    tc.ccontent AS ccontent,
+    tc.cstats AS stats,
+    tc.cimg AS image,
+    tc.cvoice AS voice,
+    sk.clq AS skill_q,
+    sk.clw AS skill_w,
+    sk.cle AS skill_e,
+    sk.clr AS skill_r,
+    sk.clp AS skill_p,
+    sk.clqimg AS skill_q_img,
+    sk.clwimg AS skill_w_img,
+    sk.cleimg AS skill_e_img,
+    sk.clrimg AS skill_r_img,
+    sk.clpimg AS skill_p_img,
+    mr.rmtitle,
+    mr.rm1,
+    mr.rm2,
+    mr.rm3,
+    mr.rm4,
+    mr.rntitle,
+    mr.rn1,
+    mr.rn2,
+    mr.count
+FROM 
+    champion_tiers ct
+JOIN 
+    testchampions tc ON ct.mcchampionname = tc.cid
+JOIN 
+    testcpskills sk ON tc.ckey = sk.clkey
+LEFT JOIN 
+    most_used_runes mr ON ct.mcteamposition = (SELECT mcteamposition FROM selected_position WHERE mcchampionname = #{cid})
+WHERE 
+    ct.mcchampionname = #{cid}
+ORDER BY 
+    ct.tier ASC, ct.weighted_score DESC, ct.win_rate DESC, ct.pick_rate DESC
+
+		]]>
+	</select>
+	<select id="selectItemInfo" resultType="map">
+		select ITID,
+		ITNAME,itcontent
+		from testitems
+	</select>
+	
+	<select id="getItemUsageData" parameterType="map"
+		resultType="map">
+		WITH ExtractedItems AS (
+    SELECT t.ITCMCID, t.ITCCID, s.MCWIN,
+           TO_NUMBER(REGEXP_REPLACE(REGEXP_SUBSTR(t.ITCIT, '[^, ]+', 1, 1), '[^0-9]', '')) AS num1,
+           TO_NUMBER(REGEXP_REPLACE(REGEXP_SUBSTR(t.ITCIT, '[^, ]+', 1, 2), '[^0-9]', '')) AS num2,
+           TO_NUMBER(REGEXP_REPLACE(REGEXP_SUBSTR(t.ITCIT, '[^, ]+', 1, 3), '[^0-9]', '')) AS num3,
+           TO_NUMBER(REGEXP_REPLACE(REGEXP_SUBSTR(t.ITCIT, '[^, ]+', 1, 4), '[^0-9]', '')) AS num4,
+           TO_NUMBER(REGEXP_REPLACE(REGEXP_SUBSTR(t.ITCIT, '[^, ]+', 1, 5), '[^0-9]', '')) AS num5,
+           TO_NUMBER(REGEXP_REPLACE(REGEXP_SUBSTR(t.ITCIT, '[^, ]+', 1, 6), '[^0-9]', '')) AS num6,
+           TO_NUMBER(REGEXP_REPLACE(REGEXP_SUBSTR(t.ITCIT, '[^, ]+', 1, 7), '[^0-9]', '')) AS num7
+    FROM testitemchoices t
+    JOIN testmatches s ON t.ITCMCID = s.MCID AND s.MCCHAMPIONID = t.ITCCID
+    WHERE s.MCCHAMPIONNAME = #{championName}
+),
+FlattenedItems AS (
+    SELECT ITCMCID, ITCCID, MCWIN, num1 AS item_id FROM ExtractedItems UNION ALL
+    SELECT ITCMCID, ITCCID, MCWIN, num2 AS item_id FROM ExtractedItems UNION ALL
+    SELECT ITCMCID, ITCCID, MCWIN, num3 AS item_id FROM ExtractedItems UNION ALL
+    SELECT ITCMCID, ITCCID, MCWIN, num4 AS item_id FROM ExtractedItems UNION ALL
+    SELECT ITCMCID, ITCCID, MCWIN, num5 AS item_id FROM ExtractedItems UNION ALL
+    SELECT ITCMCID, ITCCID, MCWIN, num6 AS item_id FROM ExtractedItems UNION ALL
+    SELECT ITCMCID, ITCCID, MCWIN, num7 AS item_id FROM ExtractedItems
+),
+ItemUsageCounts AS (
+    SELECT item_id, COUNT(*) AS usage_count,sum(MCWIN)AS winrate
+    FROM FlattenedItems
+    GROUP BY item_id
+),
+TotalItemCount AS (
+    SELECT COUNT(*) AS total_selected
+    FROM FlattenedItems
+)
+SELECT 
+    i.item_id AS item_number, 
+    b.ITNAME AS item_name, 
+    round(i.winrate/i.usage_count,4)*100 as Win_PERCENTAGE,
+    round(i.usage_count/(t.total_selected/7),4)*100 as USAGE_PERCENTAGE,
+    b.ITCONTENT AS item_description
+FROM ItemUsageCounts i
+JOIN testitems b ON i.item_id = b.ITID
+JOIN TotalItemCount t ON 1 = 1
+where i.item_id=#{itemId}
+ORDER BY i.item_id
+	</select>
+
+
+</mapper>
+

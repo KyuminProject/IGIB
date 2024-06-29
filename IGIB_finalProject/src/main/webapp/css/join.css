@@ -1,0 +1,80 @@
+@charset "UTF-8";
+
+.joinBox {
+   width: 70%;
+   height: 43px;
+   background-color: #ffffff;
+   border: 1px solid #ffffff0f;
+   border-radius: 6px;
+   padding: 0;
+   display: flex;
+   align-items: center;
+}
+
+.joinBox>input {
+   width: 100%;
+   display: inline-block;
+   border: unset;
+}
+
+.joinBox>input:focus {
+   border: unset;
+}
+
+#checkIdBtn {
+   width: 26%;
+   height: 100%;
+   border: 1px solid;
+   border-radius: 6px;
+}
+
+.btn {
+   width: 18%;
+   border-radius: 6px
+}
+
+#selectTag {
+   padding-left: 5px;
+    display: flex;
+    width: 42%;
+    justify-content: space-between;
+}
+#selectTag>input{
+   width: 52%;
+    border: unset;
+    padding: 7px;
+    outline: unset;
+}
+#selectTag>select{
+   width: 48%;
+}
+.nicknameBox>input {
+   border: unset;
+}
+
+.nicknameBox>input :focus {
+   outline: none;
+}
+
+.nicknameBox {
+   width: 66%;
+   display: inline-block;
+}
+
+.nicknameBox>input :focus {
+   outline: none;
+}
+
+#Submitbtn {
+   width: 70%;
+   height: 43px;
+   border-radius: 6px;
+   padding: 0;
+   display: flex;
+   align-items: center;
+}
+
+#Submitbtn>button {
+   width: 15%;
+}
+

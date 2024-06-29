@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.icia.igib.dao.WinningRateDao">
+	<select id="selectWinningHordeVsDragon">
+		select
+		round((win_count / total_count) * 100, 1)
+		from (
+		select
+		(select count(*)
+		from testmonsters
+		where montier = #{tier}
+		and monkillteam = #{team}
+		and montype = #{hordeOrDragon}
+		and monkillteamwin = 1) as win_count,
+		(select count(*)
+		from testmonsters
+		where montier = #{tier}
+		and monkillteam = #{team}
+		and montype = #{hordeOrDragon}) as total_count
+		from dual )
+	</select>
+
+	<select id="selectTotalCount">
+		select count(*)
+		from testmonsters
+		where montier = #{tier}
+		and monkillteam = #{team}
+		and montype = #{hordeOrDragon}
+	</select>
+
+	<select id="selectWinningDragonBlue">
+		select round((win_count/total_count)*100, 1) as win_rate
+		from ( select
+		( select count(*) from testdragons where dtype=#{dtype} and dkillteam = 100 and dkillteamwin=1) as win_count,
+		( select count(*) from testdragons where dtype=#{dtype}  and dkillteam = 100) as total_count
+		from dual)
+	</select>
+
+	<select id="selectWinningDragonRed">
+		select round((win_count/total_count)*100, 1) as win_rate
+		from ( select
+		( select count(*) from testdragons where dtype=#{dtype} and dkillteam = 200 and dkillteamwin=1) as win_count,
+		( select count(*) from testdragons where dtype=#{dtype} and dkillteam = 200) as total_count
+		from dual)
+	</select>
+
+	<select id="selectChampionName">
+		select cid, cname from testchampions
+	</select>
+	
+	<select id="selectLaneTotalCount">
+		SELECT COUNT(*)
+FROM (
+    SELECT MCID
+    FROM Testmatches
+    WHERE MCTEAMID = 100
+    GROUP BY MCID
+    HAVING COUNT(CASE WHEN MCTEAMPOSITION = #{position1} AND MCCHAMPIONNAME = #{champion1} THEN 1 END) > 0
+       AND COUNT(CASE WHEN MCTEAMPOSITION = #{position2} AND MCCHAMPIONNAME = #{champion2} THEN 1 END) > 0
+    UNION ALL
+    SELECT MCID
+    FROM Testmatches
+    WHERE MCTEAMID = 200
+    GROUP BY MCID
+    HAVING COUNT(CASE WHEN MCTEAMPOSITION = #{position1} AND MCCHAMPIONNAME = #{champion1} THEN 1 END) > 0
+       AND COUNT(CASE WHEN MCTEAMPOSITION = #{position2} AND MCCHAMPIONNAME = #{champion2} THEN 1 END) > 0
+) subquery
+	</select>
+	<select id="selectLaneWinningRate">
+	SELECT
+    ROUND((win_count / total_count) * 100, 1) AS win_percentage
+FROM (
+    SELECT
+        (SELECT COUNT(*)
+         FROM (
+            SELECT MCID
+            FROM Testmatches
+            WHERE MCTEAMID = 100
+              AND MCWIN = 1
+            GROUP BY MCID
+            HAVING COUNT(CASE WHEN MCTEAMPOSITION = #{position1} AND MCCHAMPIONNAME = #{champion1} THEN 1 END) > 0
+               AND COUNT(CASE WHEN MCTEAMPOSITION = #{position2} AND MCCHAMPIONNAME = #{champion2} THEN 1 END) > 0
+            UNION ALL
+            SELECT MCID
+            FROM Testmatches
+            WHERE MCTEAMID = 200
+              AND MCWIN = 1
+            GROUP BY MCID
+            HAVING COUNT(CASE WHEN MCTEAMPOSITION = #{position1} AND MCCHAMPIONNAME = #{champion1} THEN 1 END) > 0
+               AND COUNT(CASE WHEN MCTEAMPOSITION = #{position2} AND MCCHAMPIONNAME = #{champion2} THEN 1 END) > 0
+        )) AS win_count,
+        (SELECT COUNT(*)
+         FROM (
+            SELECT MCID
+            FROM Testmatches
+            WHERE MCTEAMID = 100
+            GROUP BY MCID
+            HAVING COUNT(CASE WHEN MCTEAMPOSITION = #{position1} AND MCCHAMPIONNAME = #{champion1} THEN 1 END) > 0
+               AND COUNT(CASE WHEN MCTEAMPOSITION = #{position2} AND MCCHAMPIONNAME = #{champion2} THEN 1 END) > 0
+            UNION ALL
+            SELECT MCID
+            FROM Testmatches
+            WHERE MCTEAMID = 200
+            GROUP BY MCID
+            HAVING COUNT(CASE WHEN MCTEAMPOSITION = #{position1} AND MCCHAMPIONNAME = #{champion1} THEN 1 END) > 0
+               AND COUNT(CASE WHEN MCTEAMPOSITION = #{position2} AND MCCHAMPIONNAME = #{champion2} THEN 1 END) > 0
+        )) AS total_count
+    FROM dual
+)
+	</select>
+</mapper>
+

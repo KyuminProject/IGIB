@@ -1,0 +1,67 @@
+@charset "UTF-8";
+
+.menu {
+	position: absolute;
+	top: 0;
+	left: 0;
+	margin: 20px;
+	color: white;
+}
+
+.menu ul {
+	list-style: none;
+	padding: 0;
+	margin: 0; /* Updated margin */
+	display: flex;
+}
+
+.menu ul li {
+	margin-right: 100px;
+	position: relative; /* 추가: 하위 메뉴를 포함한 위치 설정 */
+}
+
+.menu ul li a:hover {
+	text-decoration: underline; /* 링크에 마우스를 올리면 밑줄 추가 */
+}
+
+.menu ul li:last-child {
+	margin-right: 0;
+}
+
+.menuspan {
+	font-size: 20px;
+}
+
+.submenu {
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: -15px;
+	min-width: 120px;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	z-index: 1;
+	border-radius: 10px;
+}
+
+.submenu a {
+	color: whitesmoke;
+	padding: 12px 16px;
+	text-decoration: none;
+	display: block;
+	font-size: 12px;
+	width: max-content;
+}
+
+/* 수정: 메뉴에 마우스를 올리면 모든 서브메뉴가 나타나도록 변경 */
+.menu ul li:hover .submenu {
+	display: block;
+}
+
+.bg-video {
+	position: relative; /* 비디오를 상대적으로 위치시킵니다. */
+	z-index: 0; /* 비디오의 쌓임 순서를 푸터 아래로 내립니다. */
+}
+
+a {
+	text-decoration: none;
+}

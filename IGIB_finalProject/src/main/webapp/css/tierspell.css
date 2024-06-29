@@ -1,0 +1,29 @@
+@charset "UTF-8";
+
+.spell_td {
+	width: 150px;
+	text-align: center;
+}
+
+.spell_img {
+	border-radius: 10px;
+	width: 100%;
+	cursor: pointer;
+	transition: border 0.3s ease;
+}
+
+.spell_img:hover {
+	border: 3px solid #FFD700;
+	border-radius: 10px;
+}
+
+.spell_img.clicked {
+	border: 3px solid #FFD700;
+	border-radius: 10px;
+}
+
+#myChart {
+	fount-weight: Black;
+	color : black;
+}
+

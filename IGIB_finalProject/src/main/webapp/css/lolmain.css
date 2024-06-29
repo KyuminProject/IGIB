@@ -1,0 +1,57 @@
+@charset "UTF-8";
+
+#contactForm, .form-select, .form-control, #submitButton {
+	width: 100%;
+}
+
+#selectServer{
+	width: 20%;
+}
+
+#searchBtn {
+	width: 15%;
+}
+
+#searchNickname {
+	width: 63%;
+}
+
+.footer {
+	width: 100%;
+	background-color: black;
+	display: flex;
+	justify-content: space-around; /* 자식 요소들을 좌우로 고르게 배치 */
+	align-items: stretch; /* 자식 요소들의 높이를 동일하게 맞춤 */
+	padding: 20px; /* 내부 여백을 추가 */
+	position: relative; /* 푸터를 상대적으로 위치시킵니다. */
+	z-index: 1;
+	background-color: black; /* 푸터의 쌓임 순서를 비디오 위에 올립니다. */
+}
+
+.footerMenu {
+	display: inline-block;
+	width: 300px;
+	padding: 10px; /* 내부 여백을 추가 */
+}
+
+.footerMenu strong {
+	display: block;
+	font-size: 20px;
+	margin-bottom: 10px; /* 제목과 링크 사이의 간격 설정 */
+}
+
+.footerMenu nav a {
+	display: block;
+	margin: 3px 0; /* 링크 사이의 간격을 설정 */
+	color: cadetblue; /* 링크 색상 설정 */
+	text-decoration: none; /* 링크 밑줄 제거 */
+}
+
+.footerMenu nav a:hover {
+	text-decoration: underline; /* 링크에 마우스를 올리면 밑줄 추가 */
+}
+
+
+#Discord {
+	width: 100%;
+}

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.icia.igib.dao.MemberDao">
+	
+	<select id="loginMember" resultType="com.icia.igib.dto.MemberDto">
+		SELECT * FROM TESTMEMBERS WHERE MID = #{mid} AND MPW = #{mpw}
+	</select>
+	
+	<select id="selectMemberInfo" resultType="com.icia.igib.dto.MemberDto">
+		SELECT * FROM TESTMEMBERS WHERE MID = #{id}
+	</select>
+	
+	<insert id="insertMember_kakao">
+		INSERT INTO TESTMEMBERS(MID, MPW, MNAME, MEMAIL, MLOLNAME, MSTATE, MPAY, MLOLTAG) VALUES(#{mid}, 'kakaoAccount', #{mname},  '미입력', '미입력','K',0,'KR1')
+	</insert>
+	
+	<update id="updateInfo" >
+		UPDATE TESTMEMBERS SET MLOLNAME = #{mlolname},MLOLTAG = #{mloltag}
+		WHERE MID = #{mid}
+	</update>
+	
+	<select id="selectMemberIdCheck">
+		SELECT MID FROM TESTMEMBERS WHERE MID = #{inputId}
+	</select>
+	
+	<insert id="insertMemberJoin">
+		INSERT INTO TESTMEMBERS(MID, MPW, MNAME, MEMAIL, MLOLNAME, MSTATE, MPAY, MLOLTAG)
+		VALUES(#{mid}, #{mpw}, #{mname}, #{memail}, #{mlolname}, #{mstate}, #{mpay}, #{mloltag})
+	</insert>
+	
+	<update id="udateMemberPassword" >
+		UPDATE testmembers SET mpw = #{mpw} WHERE mid = #{mid}
+	</update>
+	
+	<select id="selectMemberFindId">
+		SELECT MID FROM TESTMEMBERS WHERE MNAME = #{mname} AND MEMAIL = #{memail}
+	</select>
+	
+	<select id="selectCheckMember" resultType="int">
+    SELECT COUNT(*) 
+    FROM TESTMEMBERS 
+    WHERE MID = #{mid} AND MEMAIL = #{memail}
+	</select>
+	
+	<select id="selectCheckMnameMember" resultType="int">
+    SELECT COUNT(*) 
+    FROM TESTMEMBERS 
+    WHERE MNAME = #{mname} AND MEMAIL = #{memail}
+	</select>
+	
+	<update id="updateEmail">
+		UPDATE TESTMEMBERS SET MEMAIL = #{memail} WHERE MID = #{mid}
+	</update>
+</mapper>
+

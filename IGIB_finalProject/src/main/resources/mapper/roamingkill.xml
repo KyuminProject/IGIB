@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.icia.igib.dao.roamingkillDao">
+	<select id="selectJungleKill">
+		WITH total_counts AS (
+		    SELECT COUNT(*) AS total_count
+		    FROM testRKillS
+		    WHERE (RKILLSID = 2 AND RASSIST = #{red_postion}) OR (RKILLSID = 7 AND RASSIST = #{blue_postion})
+		),
+		win_counts AS (
+		    SELECT RWIN, COUNT(*) AS win_count
+		    FROM testRKillS
+		    WHERE (RKILLSID = 2 AND RASSIST = #{red_postion}) OR (RKILLSID = 7 AND RASSIST = #{blue_postion})
+		    GROUP BY RWIN
+		)
+		SELECT
+		    round((win_counts.win_count / total_counts.total_count),3)*100 AS win_ratio 
+		FROM total_counts
+		CROSS JOIN win_counts
+		where win_counts.RWIN = 1
+	</select>
+	
+	<select id="selectOtherKill">
+		WITH total_counts AS (
+		    SELECT COUNT(*) AS total_count
+		    FROM testRKillS
+		    WHERE (RASSIST = 2 AND RKILLSID = #{red_postion}) OR (RASSIST = 7 AND RKILLSID = #{blue_postion})
+		),
+		win_counts AS (
+		    SELECT RWIN, COUNT(*) AS win_count
+		    FROM testRKillS
+		    WHERE (RASSIST = 2 AND RKILLSID = #{red_postion}) OR (RASSIST = 7 AND RKILLSID = #{blue_postion})
+		    GROUP BY RWIN
+		)
+		SELECT
+		    round((win_counts.win_count / total_counts.total_count),3)*100 AS win_ratio 
+		FROM total_counts
+		CROSS JOIN win_counts
+		where win_counts.RWIN = 1
+	</select>
+</mapper>
+

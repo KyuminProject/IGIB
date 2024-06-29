@@ -1,0 +1,34 @@
+@charset "UTF-8";
+
+.position_td {
+    text-align: center;
+}
+
+.tposition_td {
+    text-align: center;
+}
+
+.masthead-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.Jungtable{
+	margin-top : 10px;
+}
+
+.Linetable{
+	margin : 20px;
+}
+
+.tposition_img:hover {
+	border: 3px solid #FFD700;
+	border-radius: 10px;
+}
+
+.tposition_img.clicked {
+	border: 3px solid #FFD700;
+	border-radius: 10px;
+}
+

@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.icia.igib.dao.TierUpDao">
+
+	<select id="GoldList" resultType="com.icia.igib.dto.GoldDto"
+		parameterType="string">
+		WITH avg_values AS (
+		SELECT
+		MCTIER,
+		GLPARTICIPANTID,
+		ROUND(AVG(NULLIF(GLGM_1, 0)), 1) AS g1,
+		ROUND(AVG(NULLIF(GLGM_2, 0)),
+		1) AS g2,
+		ROUND(AVG(NULLIF(GLGM_3, 0)), 1) AS g3,
+		ROUND(AVG(NULLIF(GLGM_4, 0)), 1) AS g4,
+		ROUND(AVG(NULLIF(GLGM_5, 0)),
+		1) AS g5,
+		ROUND(AVG(NULLIF(GLGM_6, 0)), 1) AS g6,
+		ROUND(AVG(NULLIF(GLGM_7, 0)), 1) AS g7,
+		ROUND(AVG(NULLIF(GLGM_8, 0)),
+		1) AS g8,
+		ROUND(AVG(NULLIF(GLGM_9, 0)), 1) AS g9,
+		ROUND(AVG(NULLIF(GLGM_10, 0)), 1) AS g10,
+		ROUND(AVG(NULLIF(GLGM_11,
+		0)), 1) AS g11,
+		ROUND(AVG(NULLIF(GLGM_12, 0)), 1) AS g12,
+		ROUND(AVG(NULLIF(GLGM_13, 0)), 1) AS g13,
+		ROUND(AVG(NULLIF(GLGM_14,
+		0)), 1) AS g14,
+		ROUND(AVG(NULLIF(GLGM_15, 0)), 1) AS g15,
+		ROUND(AVG(NULLIF(GLGM_16, 0)), 1) AS g16,
+		ROUND(AVG(NULLIF(GLGM_17,
+		0)), 1) AS g17,
+		ROUND(AVG(NULLIF(GLGM_18, 0)), 1) AS g18,
+		ROUND(AVG(NULLIF(GLGM_19, 0)), 1) AS g19,
+		ROUND(AVG(NULLIF(GLGM_20,
+		0)), 1) AS g20,
+		ROUND(AVG(NULLIF(GLGM_21, 0)), 1) AS g21,
+		ROUND(AVG(NULLIF(GLGM_22, 0)), 1) AS g22,
+		ROUND(AVG(NULLIF(GLGM_23,
+		0)), 1) AS g23,
+		ROUND(AVG(NULLIF(GLGM_24, 0)), 1) AS g24,
+		ROUND(AVG(NULLIF(GLGM_25, 0)), 1) AS g25,
+		ROUND(AVG(NULLIF(GLGM_26,
+		0)), 1) AS g26,
+		ROUND(AVG(NULLIF(GLGM_27, 0)), 1) AS g27,
+		ROUND(AVG(NULLIF(GLGM_28, 0)), 1) AS g28,
+		ROUND(AVG(NULLIF(GLGM_29,
+		0)), 1) AS g29,
+		ROUND(AVG(NULLIF(GLGM_30, 0)), 1) AS g30,
+		ROUND(AVG(NULLIF(GLGM_31, 0)), 1) AS g31,
+		ROUND(AVG(NULLIF(GLGM_32,
+		0)), 1) AS g32,
+		ROUND(AVG(NULLIF(GLGM_33, 0)), 1) AS g33,
+		ROUND(AVG(NULLIF(GLGM_34, 0)), 1) AS g34,
+		ROUND(AVG(NULLIF(GLGM_35,
+		0)), 1) AS g35,
+		ROUND(AVG(NULLIF(GLGM_36, 0)), 1) AS g36,
+		ROUND(AVG(NULLIF(GLGM_37, 0)), 1) AS g37,
+		ROUND(AVG(NULLIF(GLGM_38,
+		0)), 1) AS g38,
+		ROUND(AVG(NULLIF(GLGM_39, 0)), 1) AS g39,
+		ROUND(AVG(NULLIF(GLGM_40, 0)), 1) AS g40,
+		ROUND(AVG(NULLIF(GLGM_41,
+		0)), 1) AS g41,
+		ROUND(AVG(NULLIF(GLGM_42, 0)), 1) AS g42,
+		ROUND(AVG(NULLIF(GLGM_43, 0)), 1) AS g43,
+		ROUND(AVG(NULLIF(GLGM_44,
+		0)), 1) AS g44,
+		ROUND(AVG(NULLIF(GLGM_45, 0)), 1) AS g45,
+		ROUND(AVG(NULLIF(GLGM_46, 0)), 1) AS g46,
+		ROUND(AVG(NULLIF(GLGM_47,
+		0)), 1) AS g47,
+		ROUND(AVG(NULLIF(GLGM_48, 0)), 1) AS g48,
+		ROUND(AVG(NULLIF(GLGM_49, 0)), 1) AS g49,
+		ROUND(AVG(NULLIF(GLGM_50,
+		0)), 1) AS g50,
+		ROUND(AVG(GLTTCS), 1) AS GTCS
+		FROM testgolds
+		JOIN
+		testmatches ON testgolds.GLMID = testmatches.MCID
+		WHERE MCTIER =#{tier}
+		GROUP BY MCTIER, GLPARTICIPANTID
+		)
+		SELECT
+		MCTIER,
+		GLPARTICIPANTID,
+		g1, g2,
+		g3, g4, g5, g6, g7, g8, g9, g10,
+		g11, g12, g13, g14, g15, g16, g17,
+		g18, g19, g20,
+		g21, g22, g23, g24, g25, g26, g27, g28, g29, g30,
+		g31,
+		g32, g33, g34, g35, g36, g37, g38, g39, g40,
+		g41, g42, g43, g44, g45,
+		g46, g47, g48, g49, g50,
+		GTCS,
+		(CASE WHEN g1 IS NOT NULL THEN 1 ELSE 0
+		END
+		+ CASE WHEN g2 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g3 IS NOT
+		NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g4 IS NOT NULL THEN 1 ELSE 0 END
+		+
+		CASE WHEN g5 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g6 IS NOT NULL
+		THEN 1 ELSE 0 END
+		+ CASE WHEN g7 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE
+		WHEN g8 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g9 IS NOT NULL THEN 1
+		ELSE 0 END
+		+ CASE WHEN g10 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g11
+		IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g12 IS NOT NULL THEN 1 ELSE 0
+		END
+		+ CASE WHEN g13 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g14 IS NOT
+		NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g15 IS NOT NULL THEN 1 ELSE 0 END
+		+
+		CASE WHEN g16 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g17 IS NOT NULL
+		THEN 1 ELSE 0 END
+		+ CASE WHEN g18 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE
+		WHEN g19 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g20 IS NOT NULL THEN
+		1 ELSE 0 END
+		+ CASE WHEN g21 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN
+		g22 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g23 IS NOT NULL THEN 1
+		ELSE 0 END
+		+ CASE WHEN g24 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g25
+		IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g26 IS NOT NULL THEN 1 ELSE 0
+		END
+		+ CASE WHEN g27 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g28 IS NOT
+		NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g29 IS NOT NULL THEN 1 ELSE 0 END
+		+
+		CASE WHEN g30 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g31 IS NOT NULL
+		THEN 1 ELSE 0 END
+		+ CASE WHEN g32 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE
+		WHEN g33 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g34 IS NOT NULL THEN
+		1 ELSE 0 END
+		+ CASE WHEN g35 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN
+		g36 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g37 IS NOT NULL THEN 1
+		ELSE 0 END
+		+ CASE WHEN g38 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g39
+		IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g40 IS NOT NULL THEN 1 ELSE 0
+		END
+		+ CASE WHEN g41 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g42 IS NOT
+		NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g43 IS NOT NULL THEN 1 ELSE 0 END
+		+
+		CASE WHEN g44 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g45 IS NOT NULL
+		THEN 1 ELSE 0 END
+		+ CASE WHEN g46 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE
+		WHEN g47 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN g48 IS NOT NULL THEN
+		1 ELSE 0 END
+		+ CASE WHEN g49 IS NOT NULL THEN 1 ELSE 0 END
+		+ CASE WHEN
+		g50 IS NOT NULL THEN 1 ELSE 0 END) AS timecount
+		FROM avg_values
+		ORDER BY
+		GLPARTICIPANTID
+
+	</select>
+
+	<select id="selectwardList" resultType="map">
+		select wtier, wtype,
+		round(sum(ward_num)/count(*),2) as TIER_COUNT,
+		round(sum(wscore)/count(wscore),2) as AVG_SCORE
+		from(
+		select
+		wmcid,wtier,wtype,count(*) as ward_num
+		from testwards
+		group by
+		wmcid,wtier,wtype) TW
+		join testwscore TWS
+		on TW.wmcid = TWS.wmcid
+		where
+		TW.wtype = #{wardType}
+		group by wtier, wtype
+		ORDER BY
+		CASE
+		WHEN wtier =
+		'IRON' THEN 1
+		WHEN wtier =
+		'BRONZE' THEN 2
+		WHEN wtier = 'SILVER' THEN 3
+		WHEN wtier = 'GOLD' THEN 4
+		WHEN wtier = 'PLATINUM' THEN 5
+		WHEN wtier =
+		'EMERALD' THEN 6
+		WHEN wtier
+		= 'DIAMOND' THEN 7
+		WHEN wtier = 'MASTER' THEN
+		8
+		WHEN wtier =
+		'GRANDMASTER' THEN 9
+		WHEN wtier = 'CHALLENGER' THEN 10
+		END
+	</select>
+
+	<select id="ChampRecommendList"
+		resultType="com.icia.igib.dto.ChampRecommendDto"
+		parameterType="string">
+	    <![CDATA[
+	        SELECT *
+	        FROM (
+	            SELECT a.MCCHAMPIONNAME as Champ, round(b.wins/a.total_matches*100,1) AS WINRATE
+	            FROM (
+	                SELECT MCCHAMPIONNAME, count(*) as total_matches
+	                FROM testmatches
+	                WHERE MCTIER = #{tier}
+	                GROUP BY MCCHAMPIONNAME
+	            ) a
+	            LEFT JOIN (
+	                SELECT MCCHAMPIONNAME, count(*) as wins
+	                FROM testmatches
+	                WHERE MCTIER = #{tier} AND MCWIN = 1
+	                GROUP BY MCCHAMPIONNAME
+	            ) b
+	            ON a.MCCHAMPIONNAME = b.MCCHAMPIONNAME
+	            WHERE total_matches > 300
+	            ORDER BY 2 DESC
+	        )
+	        WHERE ROWNUM <= 5
+	    ]]>
+	</select>
+
+	<select id="CounterRecommendList"
+		resultType="com.icia.igib.dto.ChampRecommendDto"
+		parameterType="string">
+	   <![CDATA[
+	    select *
+		from(
+		    select CHAMPIONNAME AS Champ, round(sum(win_count)/sum(game_count),3)*100 as WINRATE
+		    from(
+		        SELECT 
+		        CASE WHEN CHAMPIONNAME = #{champ} THEN e_CHAMPIONNAME ELSE CHAMPIONNAME END AS CHAMPIONNAME,
+		        CASE WHEN e_CHAMPIONNAME !=#{champ} THEN CHAMPIONNAME ELSE e_CHAMPIONNAME END AS e_CHAMPIONNAME,
+		        COUNT(*) AS game_count,
+		        SUM(CASE WHEN e_CHAMPIONNAME = #{champ} THEN 1 - WIN ELSE WIN END) AS win_count
+		        FROM 
+		            (SELECT a.MCID, a.mcparticipantid AS participantid, a.MCCHAMPIONNAME AS CHAMPIONNAME, a.MCTEAMPOSITION AS POSITION, a.MCTEAMID AS TEAMID,b.mcparticipantid AS e_participantid, b.MCCHAMPIONNAME AS e_CHAMPIONNAME, MCWIN AS WIN , MCTIER AS TIER
+		            FROM
+		                (SELECT MCID, mcparticipantid, MCCHAMPIONNAME, MCTEAMPOSITION, MCTEAMID,MCWIN,MCTIER
+		                FROM testmatches
+		                WHERE mcparticipantid BETWEEN 1 AND 5) a
+		            JOIN
+		                (SELECT MCID, mcparticipantid, MCCHAMPIONNAME, MCTEAMPOSITION, MCTEAMID
+		                FROM testmatches
+		                WHERE mcparticipantid BETWEEN 6 AND 10) b
+		            ON a.MCID = b.MCID and a.MCTEAMPOSITION = b.MCTEAMPOSITION) winrate
+		            WHERE TIER = #{tier} AND (e_CHAMPIONNAME = #{champ} or CHAMPIONNAME = #{champ})
+		            GROUP BY CHAMPIONNAME, e_CHAMPIONNAME
+		            ORDER BY 1 DESC
+		             )
+		        GROUP by CHAMPIONNAME,e_CHAMPIONNAME
+		        Having sum(game_count) >10
+		        order by 2 desc
+		    )
+		    where rownum <=5
+	    ]]>
+	</select>
+</mapper>

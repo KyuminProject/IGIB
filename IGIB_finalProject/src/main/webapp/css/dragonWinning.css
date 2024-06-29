@@ -1,0 +1,40 @@
+@charset "UTF-8";
+
+.dragon_td {
+	width: 150px;
+	text-align: center;
+}
+
+.dragon_img {
+	border-radius: 50px;
+	width: 100%;
+	cursor: pointer;
+	transition: border 0.3s ease;
+}
+
+.dragon_img:hover {
+	border: 2px solid #FFD700;
+	border-radius: 10px;
+}
+
+.dragon_img.clicked {
+	border: 2px solid #FFD700;
+	border-radius: 10px;
+}
+
+.dragon_type_div {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+}
+
+.dragon_type_img {
+	height: 30px;
+	margin-right: 4px;
+}
+
+.dragon_type {
+	font-size: 20px;
+	margin-top: 4px;
+}

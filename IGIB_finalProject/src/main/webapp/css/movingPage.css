@@ -1,0 +1,33 @@
+@charset "UTF-8";
+
+/* 기존 스타일 */
+.masthead:before {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	left: 0;
+	height: 100%;
+	width: 0%; /* 초기에는 너비가 0% */
+	background-color: rgba(0, 0, 0, 0.1);
+	/* 변경될 스타일 추가 */
+	transition: width 1s ease; /* 너비에만 트랜지션 적용 */
+}
+
+/* 추가된 스타일 */
+.masthead.fixed:before {
+	width: 100%; /* fixed 상태일 때 너비를 100%로 변경 */
+}
+
+/* 추가된 스타일 */
+.masthead {
+	transition: all 1s ease; /* .masthead의 모든 속성에 트랜지션 적용 */
+	position: relative; /* fixed로 변환되기 전에는 relative로 설정 */
+}
+
+/* 추가된 스타일 */
+.masthead.fixed {
+	position: fixed; /* fixed로 변경될 때 위치 고정 */
+	width: 100%; /* 너비를 100%로 설정하여 가득 찬 화면 효과 생성 */
+}
